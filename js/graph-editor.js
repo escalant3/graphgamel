@@ -205,14 +205,6 @@ var GraphEditor = {
   },
   
   refresh: function(){
-    var verboseOperator = {
-      lt: "less than",
-      lte: "less or equal than",
-      gt: "greater than",
-      gte: "greater or equal than",
-      eq: "equals to",
-      neq: "different to"
-    }
     //Clear everything
     this.clearLists();
     //Set nodes
@@ -231,11 +223,8 @@ var GraphEditor = {
   },
 
   init: function(){
-
-   
     this.loadGEXF();
-
-      GraphEditor.refresh();
+    GraphEditor.refresh();
     
     // Black magic to have the Processing drawer ready to call the drawInitialData method
     // The ajax petition is a straightforward copy from the Processing original code in
