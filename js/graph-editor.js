@@ -8,13 +8,25 @@ var GraphEditor = {
   USES_DRAWER: false,
   USES_TYPES: false,
 
+  // This parameter should be set to true with long batch
+  // operations (loading from GEXF) and set to false again
+  // when done. Method "refresh" should be manually called
+  _stopRefreshing: false,
+
   graphNodesId: "id_graph_nodes",
   graphEdgesId: "id_graph_edges",
   progressBarId: "progress-bar",
 
   progressBar: {
-    show: function() {$('#'+GraphEditor.progressBarId).show();},
-    hide: function() {$('#'+GraphEditor.progressBarId).hide();},
+    show: function() {
+      $('#'+GraphEditor.progressBarId).show();
+      GraphEditor._stopRefreshing = true;
+    },
+    hide: function() {
+      $('#'+GraphEditor.progressBarId).hide();
+      GraphEditor._stopRefreshing = false;
+      GraphEditor.refresh();
+    },
     set: function(value) {$('#'+GraphEditor.progressBarId+' progress').val(value);}
   },
 
@@ -156,12 +168,16 @@ var GraphEditor = {
 
   setGraphNodesJSON: function(json){
     $('#'+this.graphNodesId).val(JSON.stringify(json));
-    this.refresh();
+    if (!this._stopRefreshing) {
+      this.refresh();
+    }
   },
 
   setGraphEdgesJSON: function(json){
     $('#'+this.graphEdgesId).val(JSON.stringify(json));
-    this.refresh();
+    if (!this._stopRefreshing) {
+      this.refresh();
+    }
   },
 
   clearLists: function(){
@@ -214,6 +230,7 @@ var GraphEditor = {
   },
   
   refresh: function(){
+    console.log("Refresh");
     //Clear everything
     this.clearLists();
     //Set nodes
