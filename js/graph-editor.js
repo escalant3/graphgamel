@@ -209,10 +209,8 @@ var GraphEditor = {
     this.clearLists();
     //Set nodes
     var nodes = this.getGraphNodesJSON();
-    var nodeTypes = {};
     for(var i in nodes){
       this.addNodeToList(i);
-      nodeTypes[nodes[i]["type"]] = {};
     }
     //Set edges
     var edges = this.getGraphEdgesJSON();
@@ -220,6 +218,43 @@ var GraphEditor = {
       var edgeText = edges[i].source + " -> " + edges[i].target + " (" + edges[i].type + ")";
       this.addEdgeToList(edgeText);
     }
+  },
+
+  loadSchema: function(){
+    // Introspect graph schema
+    var nodes = this.getGraphNodesJSON();
+    var edges = this.getGraphEdgesJSON();
+    var nodeTypes = {};
+    for(var i in nodes) {
+      if (!nodeTypes.hasOwnProperty(nodes[i].type)) {
+        nodeTypes[nodes[i].type] = {};
+      }
+    }
+    var edgeTypes = {}
+    for(var i=0;i<edges.length;i++){
+      var edgeLabel = nodes[edges[i].source].type + "_" + edges[i].type + "_" + nodes[edges[i].target].type;
+      if (!edgeTypes.hasOwnProperty(edgeLabel)) {
+        edgeTypes[edgeLabel] = {
+          source: nodes[edges[i].source].type,
+          label: edges[i].type,
+          target: nodes[edges[i].target].type
+        };
+      }
+    }
+    var schema = {
+      nodeTypes: nodeTypes,
+      allowedEdges: edgeTypes
+    }
+    var list = document.getElementById('graph-schema-nodes');
+    $.each(nodeTypes, function(index, value){
+      GraphEditor.addElementToList(index, list);
+    });
+    var list = document.getElementById('graph-schema-edges');
+    $.each(edgeTypes, function(index, value){
+      var edgeText = value.source + " -> " + value.target + " (" + value.label + ")";
+      GraphEditor.addElementToList(edgeText, list);
+    });
+    $('#id_graph_schema').val(JSON.stringify(schema));
   },
 
   init: function(){
@@ -266,5 +301,9 @@ $(document).ready(function(){
   GraphEditor.USES_TYPES = true;
   GraphEditor.init();
   GraphEditor.refresh();
+  // Events linking
+  $('#schema-link').click(function(){
+    GraphEditor.loadSchema();
+  });
 });
 

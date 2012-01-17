@@ -14,6 +14,7 @@
         <li><a href="#import-gexf">Import GEXF</a></li>
         <li><a href="#sec-node-list">Node list</a></li>
         <li><a href="#sec-edge-list">Edge list</a></li>
+        <li><a id="schema-link" href="#sec-schema">Schema</a></li>
         <li><a href="#sec-debug">Debug</a></li>
       </ul>
       <div class="pill-content">
@@ -36,11 +37,19 @@
         <div id="sec-edge-list">
           <ol id="edge-list"></ol>
         </div>
+        <div id="sec-schema">
+          <h3>Node Types</h3>
+          <ul id="graph-schema-nodes"></ul>
+          <h3>Edge Types</h3>
+          <ul id="graph-schema-edges"></ul>
+        </div>
         <div id="sec-debug">
           <h3>Graph Nodes Debug</h3>
           <textarea id="id_graph_nodes" rows="10" cols="80" name="graph_nodes">{}</textarea>
           <h3>Graph Edges Debug</h3>
           <textarea id="id_graph_edges" rows="10" cols="80" name="graph_edges">[]</textarea>
+          <h3>Graph Schema Debug</h3>
+          <textarea id="id_graph_schema" rows="10" cols="80" name="graph_schema">{}</textarea>
         </div>
       </div>
     <script type="text/javascript">
