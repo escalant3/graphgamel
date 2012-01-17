@@ -9,8 +9,8 @@
   </head>
   <body>
       <h1>Graphgamel</h1>
-      <ul class="tabs">
-        <li class="active"><a href="#sec-editor">Editor</a></li>
+     <ul class="tabs">
+        <li id="editor-li" class="active"><a href="#sec-editor">Editor</a></li>
         <li><a href="#import-gexf">Import GEXF</a></li>
         <li><a href="#sec-node-list">Node list</a></li>
         <li><a href="#sec-edge-list">Edge list</a></li>
@@ -30,6 +30,9 @@
         <div id="import-gexf">
           <label for="gexf-file">Import GEXF</label>
           <input type="file" id="files" name="files[]" multiple  />
+          <div id="progress-bar">
+            <strong>Please wait while your graph data is loaded...</strong>
+          </div>
         </div>
         <div id="sec-node-list">
           <ul id="node-list"></ul>

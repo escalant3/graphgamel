@@ -10,6 +10,13 @@ var GraphEditor = {
 
   graphNodesId: "id_graph_nodes",
   graphEdgesId: "id_graph_edges",
+  progressBarId: "progress-bar",
+
+  progressBar: {
+    show: function() {$('#'+GraphEditor.progressBarId).show();},
+    hide: function() {$('#'+GraphEditor.progressBarId).hide();},
+    set: function(value) {$('#'+GraphEditor.progressBarId+' progress').val(value);}
+  },
 
   addNodeToList: function(name){
     var nodeList = document.getElementById("node-list");
@@ -166,6 +173,7 @@ var GraphEditor = {
 
   loadGEXF: function(){
         function handleFileSelect(evt) {
+        GraphEditor.progressBar.show();
         var files = evt.target.files; // FileList object
     
         for (var i = 0, f; f = files[i]; i++) {
@@ -195,6 +203,7 @@ var GraphEditor = {
                 var type = $(this).attr('label');
                 GraphEditor.addEdge(source, type, target);
               });
+              GraphEditor.progressBar.hide();
             };
           })(f);
     
@@ -301,9 +310,13 @@ $(document).ready(function(){
   GraphEditor.USES_TYPES = true;
   GraphEditor.init();
   GraphEditor.refresh();
+
   // Events linking
   $('#schema-link').click(function(){
     GraphEditor.loadSchema();
   });
+
+  //Progress bar
+  $('#progress-bar').hide();
 });
 
