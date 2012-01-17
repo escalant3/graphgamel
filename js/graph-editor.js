@@ -68,10 +68,6 @@ var GraphEditor = {
       alert("ERROR: node " + nodeName + " belongs to a relationship. Delete relationship first");
       return;
     }
-    if (nodeName == this.sourcePath || nodeName == this.targetPath){
-        alert("ERROR: node " + nodeName + " is either start or finish node");
-      return;
-    }
     var json = this.getGraphNodesJSON();
     delete json[nodeName];
     this.setGraphNodesJSON(json);
@@ -172,7 +168,6 @@ var GraphEditor = {
         function handleFileSelect(evt) {
         var files = evt.target.files; // FileList object
     
-        // Loop through the FileList and render image files as thumbnails.
         for (var i = 0, f; f = files[i]; i++) {
     
           var reader = new FileReader();
@@ -203,7 +198,6 @@ var GraphEditor = {
             };
           })(f);
     
-          // Read in the image file as a data URL.
           reader.readAsText(f);
         }
       }
@@ -281,7 +275,6 @@ var GraphEditor = {
 $(document).ready(function(){
   GraphEditor.USES_DRAWER = true;
   GraphEditor.USES_TYPES = true;
-  GraphEditor.USES_SCORES = true;
   GraphEditor.init();
   GraphEditor.refresh();
 });
