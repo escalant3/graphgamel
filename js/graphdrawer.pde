@@ -186,7 +186,7 @@ void setup() {
   float drawableWidth, drawableHeight;
   Node newNode;
   Relation newRelation;
-  size(900,800);
+  size(800,600);
   smooth();
   stroke(0);
   noStroke();
