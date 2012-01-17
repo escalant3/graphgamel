@@ -230,7 +230,6 @@ var GraphEditor = {
   },
   
   refresh: function(){
-    console.log("Refresh");
     //Clear everything
     this.clearLists();
     //Set nodes
