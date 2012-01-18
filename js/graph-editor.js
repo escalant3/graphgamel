@@ -36,20 +36,22 @@ var GraphEditor = {
     if (node.type != undefined){
       name += ' (type: ' + node.type  + ')';
     }
-    this.addElementToList(name, nodeList);
+    this.addElementToList(name, nodeList, "item");
   },
 
   addEdgeToList: function(name){
     var edgeList = document.getElementById("edge-list");
-    this.addElementToList(name, edgeList);
+    this.addElementToList(name, edgeList, "item");
   },
 
-  addElementToList: function(name, list){
+  addElementToList: function(name, list, itemClass){
     var item = document.createElement('li');
     var itemValue = document.createElement('span');
     itemValue.appendChild(document.createTextNode(name));
     item.appendChild(itemValue);
-    item.setAttribute("class", "item");
+    if (itemClass !== undefined){
+      item.setAttribute("class", itemClass);
+    }
     list.appendChild(item);
   },
 
@@ -270,16 +272,23 @@ var GraphEditor = {
       nodeTypes: nodeTypes,
       allowedEdges: edgeTypes
     }
-    var list = document.getElementById('graph-schema-nodes');
-    $.each(nodeTypes, function(index, value){
+    this.schemaToList('graph-schema-nodes',
+                      'graph-schema-edges',
+                      schema);
+    $('#id_graph_schema').val(JSON.stringify(schema));
+    return schema;
+  },
+
+  schemaToList: function(nodeElement, edgeElement, schema){
+    var list = document.getElementById(nodeElement);
+    $.each(schema.nodeTypes, function(index, value){
       GraphEditor.addElementToList(index, list);
     });
-    var list = document.getElementById('graph-schema-edges');
-    $.each(edgeTypes, function(index, value){
+    var list = document.getElementById(edgeElement);
+    $.each(schema.allowedEdges, function(index, value){
       var edgeText = value.source + " -> " + value.target + " (" + value.label + ")";
       GraphEditor.addElementToList(edgeText, list);
     });
-    $('#id_graph_schema').val(JSON.stringify(schema));
   },
 
   init: function(){
