@@ -131,18 +131,18 @@ var GraphEditor = {
       alert("Invalid edge number: " + (edgeNumber+1));
       return;
     }
-    var newList = []
-    for(var i=0;i<json.length;i++) {
-      if (i!=edgeNumber) {
-        newList.push(json[i]);
+    var newList = [];
+    $.each(json, function(index, value){
+      if (index!=edgeNumber) {
+        newList.push(value);
       } else {
-        if (this.USES_DRAWER) {
-          this.drawer.deleteEdge(json[i]["source"],
-                                      json[i]["type"],
-                                      json[i]["target"]);
+        if (GraphEditor.USES_DRAWER) {
+          GraphEditor.drawer.deleteEdge(value["source"],
+                                      value["type"],
+                                      value["target"]);
         }
       }
-    }
+    });
     this.setGraphEdgesJSON(newList);
   },
 
@@ -183,10 +183,9 @@ var GraphEditor = {
   },
 
   clearLists: function(){
-    var items = $(".item");
-    for(var i=0;i<items.length;i++){
-      items[i].parentNode.removeChild(items[i]);
-    }
+    $.each($(".item"), function(index, item){
+      item.parentNode.removeChild(item);
+    });
   },
 
   loadGEXF: function(){
@@ -235,39 +234,36 @@ var GraphEditor = {
     //Clear everything
     this.clearLists();
     //Set nodes
-    var nodes = this.getGraphNodesJSON();
-    for(var i in nodes){
-      this.addNodeToList(i);
-    }
+    $.each(this.getGraphNodesJSON(), function(index, item){
+      GraphEditor.addNodeToList(index);
+    });
     //Set edges
-    var edges = this.getGraphEdgesJSON();
-    for(var i=0;i<edges.length;i++){
-      var edgeText = edges[i].source + " -> " + edges[i].target + " (" + edges[i].type + ")";
-      this.addEdgeToList(edgeText);
-    }
+    $.each(this.getGraphEdgesJSON(), function(index, item){
+      var edgeText = item.source + " -> " + item.target + " (" + item.type + ")";
+      GraphEditor.addEdgeToList(edgeText);
+    });
   },
 
   loadSchema: function(){
     // Introspect graph schema
     var nodes = this.getGraphNodesJSON();
-    var edges = this.getGraphEdgesJSON();
     var nodeTypes = {};
-    for(var i in nodes) {
-      if (!nodeTypes.hasOwnProperty(nodes[i].type)) {
-        nodeTypes[nodes[i].type] = {};
+    $.each(nodes, function(index, item){
+      if (!nodeTypes.hasOwnProperty(item.type)) {
+        nodeTypes[item["type"]] = {};
       }
-    }
+    });
     var edgeTypes = {}
-    for(var i=0;i<edges.length;i++){
-      var edgeLabel = nodes[edges[i].source].type + "_" + edges[i].type + "_" + nodes[edges[i].target].type;
-      if (!edgeTypes.hasOwnProperty(edgeLabel)) {
+    $.each(this.getGraphEdgesJSON(), function(index, item){
+      var edgeLabel = nodes[item.source].type + "_" + item.type + "_" + nodes[item.target].type;
+      if (!edgeTypes.hasOwnProperty(edgeLabel)){
         edgeTypes[edgeLabel] = {
-          source: nodes[edges[i].source].type,
-          label: edges[i].type,
-          target: nodes[edges[i].target].type
+          source: nodes[item.source].type,
+          label: item.type,
+          target: nodes[item.target].type
         };
       }
-    }
+    });
     var schema = {
       nodeTypes: nodeTypes,
       allowedEdges: edgeTypes
@@ -312,21 +308,16 @@ var GraphEditor = {
   },
   
   drawInitialData: function(){
-    var nodesJSON = this.getGraphNodesJSON();
-    var node;
-    for(var i in nodesJSON){
-      node = nodesJSON[i];
-      if (node.hasOwnProperty('position')){
-        this.drawer.addLocatedNode(i, node['position']['x'], node['position']['y'])
+    $.each(this.getGraphNodesJSON(), function(index, item){
+      if (item.hasOwnProperty('position')){
+        this.drawer.addLocatedNode(index, item['position']['x'], item['position']['y'])
       } else {
-        this.drawer.addNode(i);
+        this.drawer.addNode(index);
       }
-    }
-    var edges = this.getGraphEdgesJSON();
-    for(var i=0;i<edges.length;i++){
-      var edge = edges[i];
-      this.drawer.addEdge(edge["source"], edge["type"], edge["target"]);
-    }
+    });
+    $.each(this.getGraphEdgesJSON(), function(index, item){
+      this.drawer.addEdge(item.source, item.type, item.target);
+    });
   }
 }
 
