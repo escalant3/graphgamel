@@ -8,6 +8,8 @@ var GraphEditor = {
   USES_DRAWER: false,
   USES_TYPES: false,
 
+  PDE_URL: "/js/graphdrawer.pde",
+
   // This parameter should be set to true with long batch
   // operations (loading from GEXF) and set to false again
   // when done. Method "refresh" should be manually called
@@ -296,7 +298,7 @@ var GraphEditor = {
     // its init method
     if (GraphEditor.USES_DRAWER){
       $.ajax({
-        url: "/js/graphdrawer.pde",
+        url: GraphEditor.PDE_URL,
         success: function(block, error){
           GraphEditor.drawer = new Processing(document.getElementById('graphcanvas'), block);
           GraphEditor.drawInitialData();
