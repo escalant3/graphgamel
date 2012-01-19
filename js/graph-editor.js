@@ -5,8 +5,8 @@ if ($ == undefined) {
 var GraphEditor = {
   DEBUG: true,
 
-  USES_DRAWER: false,
-  USES_TYPES: false,
+  USES_DRAWER: undefined,
+  USES_TYPES: undefined,
 
   PDE_URL: "/js/graphdrawer.pde",
 
@@ -290,6 +290,10 @@ var GraphEditor = {
   },
 
   init: function(){
+    // Default parameters
+    this.USES_DRAWER = (this.USES_DRAWER != undefined) ? this.USES_DRAWER : true;
+    this.USES_TYPES = (this.USES_TYPES != undefined) ? this.USES_TYPES : true;
+
     this.loadGEXF();
     GraphEditor.refresh();
     
@@ -307,6 +311,7 @@ var GraphEditor = {
         }
       );
     }
+    GraphEditor.refresh();
   },
   
   drawInitialData: function(){
@@ -324,11 +329,6 @@ var GraphEditor = {
 }
 
 $(document).ready(function(){
-  GraphEditor.USES_DRAWER = true;
-  GraphEditor.USES_TYPES = true;
-  GraphEditor.init();
-  GraphEditor.refresh();
-
   // Events linking
   $('#schema-link').click(function(){
     GraphEditor.loadSchema();
