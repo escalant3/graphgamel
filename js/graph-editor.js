@@ -101,7 +101,7 @@ var GraphEditor = {
     }
   },
 
-  addEdge: function(_source, _type, _target){
+  addEdge: function(_source, _type, _target, _properties){
     // Only prompts if the parameter is not sent
     var edgeSource = _source !== undefined ? _source : prompt("Enter source node");
     var edgeType = _type !== undefined ? _type: prompt("Enter relationship type");
@@ -120,7 +120,8 @@ var GraphEditor = {
       return;
     }
     var json = this.getGraphEdgesJSON();
-    var newEdge = {"source": edgeSource, "target": edgeTarget, "type": edgeType};
+    var properties = (_properties !== undefined) ? _properties : {};
+    var newEdge = {source: edgeSource, target: edgeTarget, type: edgeType, properties: properties};
     json.push(newEdge);
     this.setGraphEdgesJSON(json);
     if (this.USES_DRAWER) {
@@ -192,6 +193,10 @@ var GraphEditor = {
     });
   },
 
+  edgeText: function(sourceLabel, targetLabel, typeLabel){
+    return sourceLabel + ' -> ' + targetLabel + ' (' + typeLabel + ')';
+  },
+
   loadGEXF: function(){
         function handleFileSelect(evt) {
         GraphEditor.progressBar.show();
@@ -206,23 +211,39 @@ var GraphEditor = {
             return function(e) {
               var gexfContent = e.target.result;
               // GEXF IMPORTATION FUNCTION
-              $(gexfContent).find('node').each(function(){
-                GraphEditor.addNode($(this).attr('label'), {
-                                    "score": 0,
-                                    "type": $(this).find('attvalue').attr('value'),
-                                    "position": {
-                                      "x":$(this).find('viz\\:position').attr('x'),
-                                      "y":$(this).find('viz\\:position').attr('y')
-                                    }
+
+              // NODES
+              $(gexfContent).find('node').each(function(index, item){
+                
+                // Node custom attributes
+                var attributes = {};
+                $(this).find('attvalue').each(function(index){
+                    attributes[$(this).attr('for').toLowerCase()] = $(this).attr('value');
                 });
+
+                // Node position
+                attributes["position"] =  {
+                    "x":$(this).find('viz\\:position').attr('x'),
+                    "y":$(this).find('viz\\:position').attr('y')
+                }
+                
+                GraphEditor.addNode($(this).attr('label'), attributes);
               });
+
+              // EDGES
               $(gexfContent).find('edge').each(function(){
+
+                //  Edge custom attributes
+                var attributes = {};
+                $(this).find('attvalue').each(function(index){
+                    attributes[$(this).attr('for').toLowerCase()] = $(this).attr('value');
+                });
                 var sourceId = $(this).attr('source');
                 var targetId = $(this).attr('target');
                 var source = $(gexfContent).find('node#'+sourceId).attr('label');
                 var target = $(gexfContent).find('node#'+targetId).attr('label');
                 var type = $(this).attr('label');
-                GraphEditor.addEdge(source, type, target);
+                GraphEditor.addEdge(source, type, target, attributes);
               });
               GraphEditor.progressBar.hide();
             };
@@ -243,20 +264,33 @@ var GraphEditor = {
     });
     //Set edges
     $.each(this.getGraphEdgesJSON(), function(index, item){
-      var edgeText = item.source + " -> " + item.target + " (" + item.type + ")";
+      var edgeText = GraphEditor.edgeText(item.source, item.target, item.type);
       GraphEditor.addEdgeToList(edgeText);
     });
   },
 
   loadSchema: function(nodeTypeLabel, edgeTypeLabel){
-    var nodeTypeLabel = (nodeTypeLabel === undefined) ? "atype" : nodeTypeLabel;
+    var nodeTypeLabel = (nodeTypeLabel === undefined) ? "type" : nodeTypeLabel;
     var edgeTypeLabel = (edgeTypeLabel === undefined) ? "type" : edgeTypeLabel;
     // Introspect graph schema
     var nodes = this.getGraphNodesJSON();
     var nodeTypes = {};
+    var nodeTypeProperties;
     $.each(nodes, function(index, item){
+
+      // Node properties
+      nodeTypeProperties = {_nameLabel: {}};
+      $.each(item, function(pIndex, pValue){
+        if (pIndex !== nodeTypeLabel && pIndex !== "position"){
+          nodeTypeProperties[pIndex] = {};
+        }
+      });
       if (!nodeTypes.hasOwnProperty(item[nodeTypeLabel])) {
-        nodeTypes[item[nodeTypeLabel]] = {};
+        nodeTypes[item[nodeTypeLabel]] = nodeTypeProperties;
+      } else {
+        $.each(nodeTypeProperties, function(pIndex, pValue){
+          nodeTypes[item[nodeTypeLabel]][pIndex] = {};
+        });
       }
     });
     var edgeTypes = {}
@@ -268,7 +302,8 @@ var GraphEditor = {
         edgeTypes[edgeLabel] = {
           source: nodes[item.source][nodeTypeLabel],
           label: item[edgeTypeLabel],
-          target: nodes[item.target][nodeTypeLabel]
+          target: nodes[item.target][nodeTypeLabel],
+          properties: item.properties
         };
       }
     });
@@ -285,14 +320,41 @@ var GraphEditor = {
   },
 
   schemaToList: function(nodeElement, edgeElement, schema){
-    var list = document.getElementById(nodeElement);
+    var elementType, elementAttributes, edgeText;
+    // NodeType list
     $.each(schema.nodeTypes, function(index, value){
-      GraphEditor.addElementToList(index, list);
+      // NodeType attributes
+      elementAttributes = $('<ul>');
+      $.each(value, function(index2, value2){
+        elementAttributes.append(
+          $('<li>').append(index2));
+      });
+      // NodeType element
+      elementType = $('<li>');
+      elementType.append(index);
+      elementType.append(elementAttributes);
+      $('#'+nodeElement).append(elementType);
     });
-    var list = document.getElementById(edgeElement);
+
+
+    // RelationshipType list
     $.each(schema.allowedEdges, function(index, value){
-      var edgeText = value.source + " -> " + value.target + " (" + value.label + ")";
-      GraphEditor.addElementToList(edgeText, list);
+
+      // EdgeTypes attributes
+      elementAttributes = $('<ul>');
+      if (value.properties !== undefined){
+        $.each(value.properties, function(index2, value2){
+          elementAttributes.append(
+            $('<li>').append(index2));
+        });
+      }
+
+      // RelationshipType element
+      elementType = $('<li>');
+      edgeText = GraphEditor.edgeText(value.source, value.target, value.label);
+        elementType.append(edgeText);
+        elementType.append(elementAttributes);
+        $('#'+edgeElement).append(elementType);
     });
   },
 
