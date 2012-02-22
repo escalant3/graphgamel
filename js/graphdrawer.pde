@@ -1,3 +1,10 @@
+// Global parameters
+int WIDTH = 800;
+int HEIGHT = 600;
+int GRID_SPACING = 25;
+float scale = 4;
+
+
 class Node{
   boolean visible, selected;
   float posx, posy;
@@ -24,13 +31,13 @@ class Node{
       }
       radius = _nodeRadius;
       stroke(#999999);
-      noFill();
+      fill(#8EC1DA);
       if (selected){
         ellipse(posx, posy, radius*2*selectedExpansion, radius*2*selectedExpansion);
       } else {
         ellipse(posx, posy, radius*2, radius*2);
       }
-      fill(#E5FDCB);
+      fill(0);
       text(name, posx, posy);
       strokeWeight(1);
     }
@@ -159,10 +166,10 @@ class Relation{
   }
 
   void drawMe(){
-    stroke(#999999);
+    stroke(#8EC1DA);
     line(source.getX(), source.getY(), target.getX(), target.getY());
     noStroke();
-    fill(#E5FDCB);
+    fill(0);
     text(type, (source.getX()+target.getX())/2, (source.getY()+target.getY())/2);
 
   }
@@ -170,7 +177,6 @@ class Relation{
 
 
 float _nodeRadius;
-float scale = 4;
 ArrayList<Node> _nodeList = new ArrayList<Node>();
 
 Node getNode(String nodeName) {
@@ -182,23 +188,35 @@ Node getNode(String nodeName) {
   return null;
 }
 
+void draw_background(gridSpacing) {
+  background(#FFFFFF);
+  stroke(#EEEEEE);
+  for(int i=0;i<width;i+=gridSpacing){
+    line(i, 0, i, height);
+  }
+  for(int i=0;i<height;i+=gridSpacing){
+    line(0, i, width, i);
+  }
+}
+
 void setup() {
   float drawableWidth, drawableHeight;
   Node newNode;
   Relation newRelation;
-  size(800,600);
+  size(WIDTH,HEIGHT);
   smooth();
   stroke(0);
   noStroke();
   _nodeRadius = 20;
-  PFont fontA = loadFont("Courier New");  
+  PFont fontA = loadFont("Verdana");  
   textFont(fontA, 8);  
   textAlign(CENTER);
 }
 
 
 void draw(){
-  background(#417690);
+  draw_background(GRID_SPACING);
+
   _nodeRadius = width/(scale*_nodeList.size());
 
   if (mousePressed) {
