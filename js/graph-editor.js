@@ -252,7 +252,7 @@ var GraphEditor = {
           reader.readAsText(f);
         }
       }
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+    $('#files').bind('change', handleFileSelect);
   },
   
   refresh: function(){
@@ -384,15 +384,16 @@ var GraphEditor = {
   },
   
   drawInitialData: function(){
+    var self = this;
     $.each(this.getGraphNodesJSON(), function(index, item){
       if (item.hasOwnProperty('position')){
-        this.drawer.addLocatedNode(index, item['position']['x'], item['position']['y'])
+        self.drawer.addLocatedNode(index, item['position']['x'], item['position']['y'])
       } else {
-        this.drawer.addNode(index);
+        self.drawer.addNode(index);
       }
     });
     $.each(this.getGraphEdgesJSON(), function(index, item){
-      this.drawer.addEdge(item.source, item.type, item.target);
+      self.drawer.addEdge(item.source, item.type, item.target);
     });
   }
 }
