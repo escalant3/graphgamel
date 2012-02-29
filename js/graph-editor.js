@@ -76,9 +76,9 @@ var GraphEditor = {
     this.setGraphNodesJSON(json);
     if (this.USES_DRAWER) {
       if (data.hasOwnProperty('position')){
-        this.drawer.addLocatedNode(nodeName, _properties['position']['x'], _properties['position']['y'])
+        this.drawer.addLocatedNode(nodeName, _properties['position']['x'], _properties['position']['y'], data.type)
       } else {
-        this.drawer.addNode(nodeName);
+        this.drawer.addNode(nodeName, data.type);
       }
     }
   },
@@ -387,9 +387,9 @@ var GraphEditor = {
     var self = this;
     $.each(this.getGraphNodesJSON(), function(index, item){
       if (item.hasOwnProperty('position')){
-        self.drawer.addLocatedNode(index, item['position']['x'], item['position']['y'])
+        self.drawer.addLocatedNode(index, item['position']['x'], item['position']['y'], item.type)
       } else {
-        self.drawer.addNode(index);
+        self.drawer.addNode(index, item.type);
       }
     });
     $.each(this.getGraphEdgesJSON(), function(index, item){
@@ -407,4 +407,3 @@ $(document).ready(function(){
   //Progress bar
   $('#progress-bar').hide();
 });
-

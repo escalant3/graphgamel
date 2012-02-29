@@ -1,17 +1,30 @@
 // Global parameters
-int WIDTH = 800;
-int HEIGHT = 600;
+int WIDTH = 1200;
+int HEIGHT = 450;
 int GRID_SPACING = 25;
 float scale = 4;
 
+// Taken from http://www.hitmill.com/html/pastels2.html
+color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
+#D73E68, #B300B3, #8D18AB, #5B5BFF, #25A0C5, #5EAE9E, #FF5353,
+#DD597D, #CA00CA, #A41CC6, #7373FF, #29AFD6, #74BAAC,
+#FF7373, #E37795, #D900D9, #BA21E0, #8282FF, #4FBDDD, #8DC7BB,
+#FF8E8E, #E994AB, #FF2DFF, #CB59E8, #9191FF, #67C7E2, #A5D3CA,
+#FFA4A4, #EDA9BC, #F206FF, #CB59E8, #A8A8FF, #8ED6EA, #C0E0DA,
+#FFB5B5, #F0B9C8, #FF7DFF, #D881ED, #B7B7FF, #A6DEEE, #CFE7E2,
+#FFC8C8, #F4CAD6, #FFA8FF, #EFCDF8, #C6C6FF, #C0E7F3, #DCEDEA,
+#FFEAEA, #F8DAE2, #FFC4FF, #EFCDF8, #DBDBFF, #D8F0F8, #E7F3F1,
+#FFEAEA, #FAE7EC, #FFE3FF, #F8E9FC, #EEEEFF, #EFF9FC, #F2F9F8,
+#FFFDFD, #FEFAFB, #FFFDFF, #FFFFFF, #FDFDFF, #FAFDFE, #F7FBFA};
 
 class Node{
   boolean visible, selected;
   float posx, posy;
   float radius;
-  float selectedExpansion = 1.5;
+  float selectedExpansion = 1.1;
   boolean finalNode;
   String name;
+  int nodeType = 0;
   ArrayList<Relation> relations;
 
   Node(float x, float y, String n){
@@ -31,7 +44,7 @@ class Node{
       }
       radius = _nodeRadius;
       stroke(#999999);
-      fill(#8EC1DA);
+      fill(COLORS[nodeType]);
       if (selected){
         ellipse(posx, posy, radius*2*selectedExpansion, radius*2*selectedExpansion);
       } else {
@@ -86,6 +99,16 @@ class Node{
 
   void setY(float y){
     posy=y;
+  }
+
+  void setType(String nt){
+    int nodeTypeIndex = 0;
+    nodeTypeIndex = _nodeTypes.indexOf(nt);
+    if (nodeTypeIndex == -1){
+      _nodeTypes.add(nt);
+      nodeTypeIndex = _nodeTypes.size() - 1;
+    }
+    nodeType = nodeTypeIndex;
   }
 
   String[] getRelationshipTypes(){
@@ -178,6 +201,7 @@ class Relation{
 
 float _nodeRadius;
 ArrayList<Node> _nodeList = new ArrayList<Node>();
+ArrayList<String> _nodeTypes = new ArrayList();
 
 Node getNode(String nodeName) {
   for(int i=0;i<_nodeList.size();i++){
@@ -211,13 +235,14 @@ void setup() {
   PFont fontA = loadFont("Verdana");  
   textFont(fontA, 8);  
   textAlign(CENTER);
+  _nodeTypes.add("notype");
 }
 
 
 void draw(){
   draw_background(GRID_SPACING);
 
-  _nodeRadius = width/(scale*_nodeList.size());
+  _nodeRadius = height/(scale*_nodeList.size());
 
   if (mousePressed) {
     for(int i=0;i<_nodeList.size();i++){
@@ -243,17 +268,27 @@ void unselectAll(){
   }
 }
 
-void addNode(String nodeName){
+void addNode(String nodeName, String nodeType){
   Node newNode;
   newNode = new Node(random(width), random(height), nodeName);
+
+  if (nodeType) {
+    newNode.setType(nodeType);
+  }
+
   _nodeList.add(newNode);
 }
 
-void addLocatedNode(String nodeName, float xpos, float ypos){
+void addLocatedNode(String nodeName, float xpos, float ypos, String nodeType){
   Node newNode;
   float x = width*norm(xpos, -1400, 1400);
   float y = height*norm(ypos, -1000, 1400);
   newNode = new Node(x, y, nodeName);
+
+  if (nodeType) {
+    newNode.setType(nodeType);
+  }
+
   _nodeList.add(newNode);
 }
 
