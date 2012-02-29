@@ -1,8 +1,11 @@
 // Global parameters
 int WIDTH = 1200;
 int HEIGHT = 450;
-int GRID_SPACING = 25;
-float scale = 4;
+int GRID_SPACING = 15;
+float objectScale = 4;
+
+float SCALING_STEP = 0.1;
+float PANNING_STEP = 5;
 
 // Taken from http://www.hitmill.com/html/pastels2.html
 color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
@@ -57,11 +60,17 @@ class Node{
   }
 
   boolean touchingMe(float x, float y){
+    float transformedPosX, transformedPosY;
+
     if (!visible) return false;
+
+    transformedPosX = (posx - _canvasXPan) * _canvasScale;
+    transformedPosY = (posy - _canvasYPan) * _canvasScale;
+
     if (selected){
-      return (dist(posx, posy, x, y) < radius*selectedExpansion);
+      return (dist(transformedPosX, transformedPosY, x, y) < radius*selectedExpansion);
     } else {
-      return (dist(posx, posy, x, y) < radius);
+      return (dist(transformedPosX, transformedPosY, x, y) < radius);
     }
   }
 
@@ -200,6 +209,11 @@ class Relation{
 
 
 float _nodeRadius;
+
+float _canvasScale = 1.0;
+float _canvasXPan = 0.0;
+float _canvasYPan = 0.0;
+
 ArrayList<Node> _nodeList = new ArrayList<Node>();
 ArrayList<String> _nodeTypes = new ArrayList();
 
@@ -228,6 +242,7 @@ void setup() {
   Node newNode;
   Relation newRelation;
   size(WIDTH,HEIGHT);
+  frameRate(10);
   smooth();
   stroke(0);
   noStroke();
@@ -240,13 +255,32 @@ void setup() {
 
 
 void draw(){
+  float mouseXtransformed, mouseYtransformed;
   draw_background(GRID_SPACING);
+  
+  if (keyPressed){
+    if (key == '+') {incScale();}
+    if (key == '-') {decScale();}
+    if (keyCode == LEFT) {panLeft();}
+    if (keyCode == RIGHT) {panRight();}
+    if (keyCode == UP) {panUp();}
+    if (keyCode == DOWN) {panDown();}
+  }
 
-  _nodeRadius = height/(scale*_nodeList.size());
+  scale(_canvasScale, _canvasScale);
+  translate(_canvasXPan, _canvasYPan);
+
+  _nodeRadius = height/(objectScale*_nodeList.size());
+
+  for(int i=0;i<_nodeList.size();i++){
+    _nodeList.get(i).drawMe();
+  }
 
   if (mousePressed) {
+    mouseXtransformed = (mouseX - _canvasXPan) * _canvasScale;
+    mouseYtransformed = (mouseY - _canvasYPan) * _canvasScale;
     for(int i=0;i<_nodeList.size();i++){
-      if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
+      if (_nodeList.get(i).touchingMe(mouseXtransformed, mouseYtransformed)){
         unselectAll();
         _nodeList.get(i).setSelected();
         _nodeList.get(i).setX(mouseX);
@@ -256,9 +290,6 @@ void draw(){
     }
   } else {
     unselectAll();
-  }
-  for(int i=0;i<_nodeList.size();i++){
-    _nodeList.get(i).drawMe();
   }
 }
 
@@ -311,6 +342,37 @@ void deleteEdge(String source, String type, String target){
   Node sourceNode = getNode(source);
   sourceNode.removeRelation(type, target);
 }
+
+void incScale(){
+  _canvasScale += SCALING_STEP;
+}
+
+void decScale(){
+  _canvasScale -= SCALING_STEP;
+}
+
+void setScale(float value){
+  _canvasScale = value;
+}
+
+void panLeft(){
+  _canvasXPan += PANNING_STEP;
+}
+
+void panRight(){
+  _canvasXPan -= PANNING_STEP;
+}
+
+void panUp(){
+  _canvasYPan += PANNING_STEP;
+}
+
+void panDown(){
+  _canvasYPan -= PANNING_STEP;
+}
+
+
+
 
 void test(){
   addNode("Tolkien");
