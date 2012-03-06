@@ -5,7 +5,13 @@ int GRID_SPACING = 15;
 float objectScale = 4;
 
 float SCALING_STEP = 0.1;
-float PANNING_STEP = 5;
+float PANNING_STEP = 10;
+
+float MIN_SCALING = 0.1;
+float MAX_SCALING = 4.5;
+
+float MIN_PANNING = -1000;
+float MAX_PANNING = 1000;
 
 // Taken from http://www.hitmill.com/html/pastels2.html
 color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
@@ -64,13 +70,13 @@ class Node{
 
     if (!visible) return false;
 
-    transformedPosX = (posx - _canvasXPan) * _canvasScale;
-    transformedPosY = (posy - _canvasYPan) * _canvasScale;
+    transformedPosX = posx * _canvasScale + _canvasXPan;
+    transformedPosY = posy * _canvasScale + _canvasYPan;
 
     if (selected){
-      return (dist(transformedPosX, transformedPosY, x, y) < radius*selectedExpansion);
+      return (dist(transformedPosX, transformedPosY, x, y) < radius*selectedExpansion*_canvasScale);
     } else {
-      return (dist(transformedPosX, transformedPosY, x, y) < radius);
+      return (dist(transformedPosX, transformedPosY, x, y) < radius*_canvasScale);
     }
   }
 
@@ -267,24 +273,24 @@ void draw(){
     if (keyCode == DOWN) {panDown();}
   }
 
-  scale(_canvasScale, _canvasScale);
   translate(_canvasXPan, _canvasYPan);
+  scale(_canvasScale, _canvasScale);
 
-  _nodeRadius = height/(objectScale*_nodeList.size());
+  _nodeRadius = max(height/(objectScale*_nodeList.size()), 5);
 
   for(int i=0;i<_nodeList.size();i++){
     _nodeList.get(i).drawMe();
   }
 
   if (mousePressed) {
-    mouseXtransformed = (mouseX - _canvasXPan) * _canvasScale;
-    mouseYtransformed = (mouseY - _canvasYPan) * _canvasScale;
+    mouseXtransformed = (mouseX - _canvasXPan) / _canvasScale;
+    mouseYtransformed = (mouseY - _canvasYPan) / _canvasScale;
     for(int i=0;i<_nodeList.size();i++){
-      if (_nodeList.get(i).touchingMe(mouseXtransformed, mouseYtransformed)){
+      if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
         unselectAll();
         _nodeList.get(i).setSelected();
-        _nodeList.get(i).setX(mouseX);
-        _nodeList.get(i).setY(mouseY);
+        _nodeList.get(i).setX(mouseXtransformed);
+        _nodeList.get(i).setY(mouseYtransformed);
         break;
       }
     }
@@ -345,30 +351,37 @@ void deleteEdge(String source, String type, String target){
 
 void incScale(){
   _canvasScale += SCALING_STEP;
+  _canvasScale = min(_canvasScale, MAX_SCALING);
 }
 
 void decScale(){
   _canvasScale -= SCALING_STEP;
+  _canvasScale = max(_canvasScale, MIN_SCALING);
 }
 
 void setScale(float value){
   _canvasScale = value;
+  _canvasScale = min(_canvasScale, MAX_SCALING);
 }
 
 void panLeft(){
   _canvasXPan += PANNING_STEP;
+  _canvasXPan = min(_canvasXPan, MAX_PANNING);
 }
 
 void panRight(){
   _canvasXPan -= PANNING_STEP;
+  _canvasXPan = max(_canvasXPan, MIN_PANNING);
 }
 
 void panUp(){
   _canvasYPan += PANNING_STEP;
+  _canvasYPan = min(_canvasYPan, MAX_PANNING);
 }
 
 void panDown(){
   _canvasYPan -= PANNING_STEP;
+  _canvasYPan = max(_canvasYPan, MIN_PANNING);
 }
 
 
