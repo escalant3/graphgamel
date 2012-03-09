@@ -5,13 +5,13 @@ int GRID_SPACING = 15;
 float objectScale = 4;
 
 float SCALING_STEP = 0.1;
-float PANNING_STEP = 10;
+float PANNING_STEP = 5;
 
 float MIN_SCALING = 0.1;
 float MAX_SCALING = 4.5;
 
-float MIN_PANNING = -1000;
-float MAX_PANNING = 1000;
+float MIN_PANNING = -10000;
+float MAX_PANNING = 10000;
 
 // Taken from http://www.hitmill.com/html/pastels2.html
 color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
@@ -85,6 +85,7 @@ class Node{
   }
 
   void setSelected(){
+    _nodeSelected=true;
     selected=true;
   }
 
@@ -98,6 +99,10 @@ class Node{
 
   boolean isVisible(){
     return visible;
+  }
+
+  boolean isSelected(){
+    return selected;
   }
 
   float getX(){
@@ -215,6 +220,7 @@ class Relation{
 
 
 float _nodeRadius;
+boolean _nodeSelected;
 
 float _canvasScale = 1.0;
 float _canvasXPan = 0.0;
@@ -248,7 +254,7 @@ void setup() {
   Node newNode;
   Relation newRelation;
   size(WIDTH,HEIGHT);
-  frameRate(10);
+  //frameRate(10);
   smooth();
   stroke(0);
   noStroke();
@@ -261,12 +267,11 @@ void setup() {
 
 
 void draw(){
-  float mouseXtransformed, mouseYtransformed;
   draw_background(GRID_SPACING);
-  
-  if (keyPressed){
-    if (key == '+') {incScale();}
-    if (key == '-') {decScale();}
+
+  if (keyPressed || mouseScroll){
+    if (key == '+' || mouseScroll == 1) {mouseScroll=0;incScale();}
+    if (key == '-' || mouseScroll == -1) {mouseScroll=0;decScale();}
     if (keyCode == LEFT) {panLeft();}
     if (keyCode == RIGHT) {panRight();}
     if (keyCode == UP) {panUp();}
@@ -282,20 +287,45 @@ void draw(){
     _nodeList.get(i).drawMe();
   }
 
-  if (mousePressed) {
-    mouseXtransformed = (mouseX - _canvasXPan) / _canvasScale;
-    mouseYtransformed = (mouseY - _canvasYPan) / _canvasScale;
-    for(int i=0;i<_nodeList.size();i++){
-      if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
-        unselectAll();
-        _nodeList.get(i).setSelected();
-        _nodeList.get(i).setX(mouseXtransformed);
-        _nodeList.get(i).setY(mouseYtransformed);
-        break;
-      }
+}
+
+void mousePressed(){
+  for(int i=0;i<_nodeList.size();i++){
+    if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
+      unselectAll();
+      console.log("selected", i);
+      _nodeList.get(i).setSelected();
+      break;
     }
-  } else {
-    unselectAll();
+  }
+}
+
+void mouseReleased(){
+  unselectAll();
+  _nodeSelected = false;
+}
+
+void mouseDragged(){
+  float mouseXtransformed, mouseYtransformed;
+  // Pan the canvas if no node is selected
+
+  if (mouseX < pmouseX) {panLeft();}
+  if (mouseX > pmouseX) {panRight();}
+  if (mouseY < pmouseY) {panUp();}
+  if (mouseY > pmouseY) {panDown();}
+  if (!_nodeSelected){
+    return;
+  }
+
+  // Move the selected node
+  for(int i=0;i<_nodeList.size();i++){
+    if (_nodeList.get(i).isSelected()){
+      mouseXtransformed = (mouseX - _canvasXPan) / _canvasScale;
+      mouseYtransformed = (mouseY - _canvasYPan) / _canvasScale;
+      _nodeList.get(i).setX(mouseXtransformed);
+      _nodeList.get(i).setY(mouseYtransformed);
+      break;
+    }
   }
 }
 
