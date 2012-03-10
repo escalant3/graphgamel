@@ -3,15 +3,16 @@ int WIDTH = 1200;
 int HEIGHT = 450;
 int GRID_SPACING = 15;
 float objectScale = 4;
+boolean _showLabels = true;
 
 float SCALING_STEP = 0.1;
-float PANNING_STEP = 10;
+float PANNING_STEP = 5;
 
 float MIN_SCALING = 0.1;
 float MAX_SCALING = 4.5;
 
-float MIN_PANNING = -1000;
-float MAX_PANNING = 1000;
+float MIN_PANNING = -10000;
+float MAX_PANNING = 10000;
 
 // Taken from http://www.hitmill.com/html/pastels2.html
 color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
@@ -29,6 +30,7 @@ color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586,
 class Node{
   boolean visible, selected;
   float posx, posy;
+  float xspeed, yspeed;
   float radius;
   float selectedExpansion = 1.1;
   boolean finalNode;
@@ -42,6 +44,8 @@ class Node{
     name = n;
     visible = true;
     relations = new ArrayList<Relation>();
+    xspeed = 0;
+    yspeed = 0;
   }
 
   void drawMe(){
@@ -59,9 +63,11 @@ class Node{
       } else {
         ellipse(posx, posy, radius*2, radius*2);
       }
-      fill(0);
-      text(name, posx, posy);
-      strokeWeight(1);
+      if (_showLabels){
+        fill(0);
+        text(name, posx, posy);
+        strokeWeight(1);
+      }
     }
   }
 
@@ -85,6 +91,7 @@ class Node{
   }
 
   void setSelected(){
+    _nodeSelected=true;
     selected=true;
   }
 
@@ -98,6 +105,10 @@ class Node{
 
   boolean isVisible(){
     return visible;
+  }
+
+  boolean isSelected(){
+    return selected;
   }
 
   float getX(){
@@ -114,6 +125,22 @@ class Node{
 
   void setY(float y){
     posy=y;
+  }
+
+  void setXSpeed(float s){
+    xspeed = s;
+  }
+
+  float getXSpeed(){
+    return xspeed;
+  }
+
+  void setYSpeed(float s){
+    yspeed = s;
+  }
+
+  float getYSpeed(){
+    return yspeed;
   }
 
   void setType(String nt){
@@ -138,6 +165,15 @@ class Node{
   boolean hasEdge(String type, String target){
     for(int i=0;i<relations.size();i++){
       if (relations.get(i).getType()==type && relations.get(i).getNode().getName()==target){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  boolean hasAnyEdge(String target){
+    for(int i=0;i<relations.size();i++){
+      if (relations.get(i).getNode().getName()==target){
         return true;
       }
     }
@@ -195,6 +231,7 @@ class Relation{
     target=tNode;
   }
 
+  //TODO Remove this
   Node getNode(){
     return target;
   }
@@ -203,18 +240,28 @@ class Relation{
     return type;
   }
 
-  void drawMe(){
-    stroke(#8EC1DA);
-    line(source.getX(), source.getY(), target.getX(), target.getY());
-    noStroke();
-    fill(0);
-    text(type, (source.getX()+target.getX())/2, (source.getY()+target.getY())/2);
+  Node getSource(){
+    return source;
+  }
 
+  Node getTarget(){
+    return target;
+  }
+
+  void drawMe(){
+    stroke(0);
+    line(source.getX(), source.getY(), target.getX(), target.getY());
+    if (_showLabels){
+      noStroke();
+      fill(0);
+      text(type, (source.getX()+target.getX())/2, (source.getY()+target.getY())/2);
+    }
   }
 }
 
 
 float _nodeRadius;
+boolean _nodeSelected;
 
 float _canvasScale = 1.0;
 float _canvasXPan = 0.0;
@@ -248,7 +295,7 @@ void setup() {
   Node newNode;
   Relation newRelation;
   size(WIDTH,HEIGHT);
-  frameRate(10);
+  //frameRate(10);
   smooth();
   stroke(0);
   noStroke();
@@ -261,17 +308,15 @@ void setup() {
 
 
 void draw(){
-  float mouseXtransformed, mouseYtransformed;
   draw_background(GRID_SPACING);
-  
-  if (keyPressed){
-    if (key == '+') {incScale();}
-    if (key == '-') {decScale();}
-    if (keyCode == LEFT) {panLeft();}
-    if (keyCode == RIGHT) {panRight();}
-    if (keyCode == UP) {panUp();}
-    if (keyCode == DOWN) {panDown();}
+
+  if (keyPressed || mouseScroll){
+    if (mouseScroll == 1) {mouseScroll=0;incScale();}
+    if (mouseScroll == -1) {mouseScroll=0;decScale();}
   }
+
+  // Layout algorithm
+  spring();
 
   translate(_canvasXPan, _canvasYPan);
   scale(_canvasScale, _canvasScale);
@@ -282,20 +327,114 @@ void draw(){
     _nodeList.get(i).drawMe();
   }
 
-  if (mousePressed) {
-    mouseXtransformed = (mouseX - _canvasXPan) / _canvasScale;
-    mouseYtransformed = (mouseY - _canvasYPan) / _canvasScale;
-    for(int i=0;i<_nodeList.size();i++){
-      if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
-        unselectAll();
-        _nodeList.get(i).setSelected();
-        _nodeList.get(i).setX(mouseXtransformed);
-        _nodeList.get(i).setY(mouseYtransformed);
-        break;
-      }
+}
+
+void mousePressed(){
+  for(int i=0;i<_nodeList.size();i++){
+    if (_nodeList.get(i).touchingMe(mouseX, mouseY)){
+      unselectAll();
+      _nodeList.get(i).setSelected();
+      break;
     }
-  } else {
-    unselectAll();
+  }
+}
+
+void mouseReleased(){
+  unselectAll();
+  _nodeSelected = false;
+}
+
+void mouseDragged(){
+  float mouseXtransformed, mouseYtransformed;
+  // Pan the canvas if no node is selected
+
+  if (!_nodeSelected){
+    if (mouseX > pmouseX) {panLeft();}
+    if (mouseX < pmouseX) {panRight();}
+    if (mouseY > pmouseY) {panUp();}
+    if (mouseY < pmouseY) {panDown();}
+    return;
+  }
+
+  // Move the selected node
+  for(int i=0;i<_nodeList.size();i++){
+    if (_nodeList.get(i).isSelected()){
+      mouseXtransformed = (mouseX - _canvasXPan) / _canvasScale;
+      mouseYtransformed = (mouseY - _canvasYPan) / _canvasScale;
+      _nodeList.get(i).setX(mouseXtransformed);
+      _nodeList.get(i).setY(mouseYtransformed);
+      break;
+    }
+  }
+}
+
+void spring(){
+  int margin = 5;
+  int N;
+  float k, xmove, ymove;
+  Node node;
+  
+  for(int i=0;i<_nodeList.size();i++){
+    node = _nodeList.get(i);
+    node.setXSpeed(0);
+    node.setYSpeed(0);
+  }
+  N = _nodeList.size();
+  k = Math.sqrt(height*width/N);
+  for(int i=0;i<_nodeList.size();i++){
+    for(int j=0;j<_nodeList.size();j++){
+      coulombRepulsion(k, _nodeList.get(i), _nodeList.get(j));
+    }
+  }
+  for(int i=0;i<_nodeList.size();i++){
+    node = _nodeList.get(i);
+    for(int j=0;j<node.getRelations().size();j++){
+      hookeAttraction(k, node.getRelations().get(j));
+    }
+  }
+  for(int i=0;i<_nodeList.size();i++){
+    node = _nodeList.get(i);
+    xmove = 0.001 * node.getXSpeed();
+    ymove = 0.001 * node.getYSpeed();
+    node.setX(node.getX()+xmove);
+    node.setY(node.getY()+ymove);
+    if (node.getX() > width) node.setX(width-margin);
+    if (node.getX() < margin) node.setX(margin);
+    if (node.getY() > height) node.setY(height-margin);
+    if (node.getY() < margin) node.setY(margin);
+  }
+}
+
+void coulombRepulsion(float k, Node n1, Node n2){
+  float dx, dy, d, repulsiveForce;
+  dx = n2.getX() - n1.getX();
+  dy = n2.getY() - n1.getY();
+  d = Math.sqrt(dx*dx + dy*dy);
+  if (d>0){
+    repulsiveForce =  k / d;
+    n2.setXSpeed(n2.getXSpeed() + repulsiveForce * dx / d);
+    n2.setYSpeed(n2.getYSpeed() + repulsiveForce * dy / d);
+    n1.setXSpeed(n1.getXSpeed() - repulsiveForce * dx / d);
+    n1.setYSpeed(n1.getYSpeed() - repulsiveForce * dy / d);
+  }
+
+}
+
+void hookeAttraction(float k, Relation r){
+  float dx, dy, d, attractiveForce;
+  Node source, target;
+  source = r.getSource();
+  target = r.getTarget();
+  dx = target.getX() - source.getX();
+  dy = target.getY() - source.getY();
+  d = dx*dx + dy*dy;
+  attractiveForce = d / k;
+  d = Math.sqrt(d);
+  if (d>0){
+    target.setXSpeed(target.getXSpeed() - attractiveForce * dx / d);
+    target.setYSpeed(target.getYSpeed() - attractiveForce * dy / d);
+    source.setXSpeed(source.getXSpeed() + attractiveForce * dx / d);
+    source.setYSpeed(source.getYSpeed() + attractiveForce * dy / d);
   }
 }
 
@@ -349,13 +488,23 @@ void deleteEdge(String source, String type, String target){
   sourceNode.removeRelation(type, target);
 }
 
+/* Scaling produces an unwanted behaviour moving the canvas 
+  upper-left. This values help keeping the camera centered
+*/
+float X_CORRECTOR = 10;
+float Y_CORRECTOR = 5;
+
 void incScale(){
   _canvasScale += SCALING_STEP;
+  _canvasXPan -= X_CORRECTOR*PANNING_STEP;
+  _canvasYPan -= Y_CORRECTOR*PANNING_STEP;
   _canvasScale = min(_canvasScale, MAX_SCALING);
 }
 
 void decScale(){
   _canvasScale -= SCALING_STEP;
+  _canvasXPan += X_CORRECTOR*PANNING_STEP;
+  _canvasYPan += Y_CORRECTOR*PANNING_STEP;
   _canvasScale = max(_canvasScale, MIN_SCALING);
 }
 
@@ -382,6 +531,10 @@ void panUp(){
 void panDown(){
   _canvasYPan -= PANNING_STEP;
   _canvasYPan = max(_canvasYPan, MIN_PANNING);
+}
+
+void toggleLabels(){
+  _showLabels = !_showLabels;
 }
 
 
