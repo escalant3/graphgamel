@@ -28,7 +28,8 @@
             <a class="btn danger" onclick="GraphEditor.deleteNode()">Delete node</a>
             <a class="btn success" onclick="GraphEditor.addEdge()">Add edge</a>
             <a class="btn danger" onclick="GraphEditor.deleteEdge()">Delete edge</a>
-            <span>With the canvas selected, use the arrows to pan through the graph. Use + and - to zoom</span>
+            <a class="btn success" onclick="GraphEditor.drawer.toggleLabels()">Labels</a>
+            <span>Pan and scroll with mouse to navigate the graph</span>
          </div>
           <canvas id="graphcanvas"></canvas>
         </div>
