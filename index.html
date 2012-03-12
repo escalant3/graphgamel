@@ -16,6 +16,7 @@
      <ul class="tabs">
         <li id="editor-li" class="active"><a href="#sec-editor">Editor</a></li>
         <li><a href="#import-gexf">Import GEXF</a></li>
+        <li><a href="#import-csv">Import CSVs</a></li>
         <li><a href="#sec-node-list">Node list</a></li>
         <li><a href="#sec-edge-list">Edge list</a></li>
         <li><a id="schema-link" href="#sec-schema">Schema</a></li>
@@ -38,6 +39,22 @@
           <input type="file" id="files" name="files[]" multiple  />
           <div id="progress-bar">
             <strong>Please wait while your graph data is loaded...</strong>
+          </div>
+        </div>
+        <div id="import-csv">
+          <div>
+          <label for="csv-nodes">Node file</label>
+          <input type="file" id="csv-nodes" name="csv-nodes" />
+          <div id="csv-nodes-progress-bar" style="display:none">
+            <strong>Please wait while your nodes are loaded...</strong>
+          </div>
+          </div>
+          <div>
+          <label for="csv-edges">Edge file</label>
+          <input type="file" id="csv-edges" name="csv-edges" />
+          <div id="csv-edges-progress-bar" style="display:none">
+            <strong>Please wait while your nodes are loaded...</strong>
+          </div>
           </div>
         </div>
         <div id="sec-node-list">
