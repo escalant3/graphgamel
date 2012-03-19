@@ -496,9 +496,11 @@ float Y_CORRECTOR = 5;
 
 void incScale(){
   _canvasScale += SCALING_STEP;
-  _canvasXPan -= X_CORRECTOR*PANNING_STEP;
-  _canvasYPan -= Y_CORRECTOR*PANNING_STEP;
   _canvasScale = min(_canvasScale, MAX_SCALING);
+  if (_canvasScale != MAX_SCALING) {
+    _canvasXPan -= X_CORRECTOR*PANNING_STEP;
+    _canvasYPan -= Y_CORRECTOR*PANNING_STEP;
+  }
 }
 
 void decScale(){
