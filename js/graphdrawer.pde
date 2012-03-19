@@ -8,7 +8,7 @@ boolean _showLabels = true;
 float SCALING_STEP = 0.1;
 float PANNING_STEP = 5;
 
-float MIN_SCALING = 0.1;
+float MIN_SCALING = 1.0;
 float MAX_SCALING = 4.5;
 
 float MIN_PANNING = -10000;
@@ -503,9 +503,11 @@ void incScale(){
 
 void decScale(){
   _canvasScale -= SCALING_STEP;
-  _canvasXPan += X_CORRECTOR*PANNING_STEP;
-  _canvasYPan += Y_CORRECTOR*PANNING_STEP;
   _canvasScale = max(_canvasScale, MIN_SCALING);
+  if (_canvasScale != MIN_SCALING) {
+    _canvasXPan += X_CORRECTOR*PANNING_STEP;
+    _canvasYPan += Y_CORRECTOR*PANNING_STEP;
+  }
 }
 
 void setScale(float value){
