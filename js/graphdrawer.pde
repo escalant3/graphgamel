@@ -256,9 +256,8 @@ class Relation{
     line(source.getX(), source.getY(), target.getX(), target.getY());
     ellipse(posx, posy, 3, 3);
     if (_showLabels){
-      noStroke();
       fill(0);
-      text(type, posy);
+      text(type, posx, posy);
     }
   }
 }
