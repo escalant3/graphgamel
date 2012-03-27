@@ -14,6 +14,8 @@ float MAX_SCALING = 4.5;
 float MIN_PANNING = -10000;
 float MAX_PANNING = 10000;
 
+int MULTI_PADDING = 10;
+
 // Taken from http://www.hitmill.com/html/pastels2.html
 color[] COLORS = {#F70000, #B9264F, #990099, #74138C, #0000CE, #1F88A7, #4A9586, #FF2626,
 #D73E68, #B300B3, #8D18AB, #5B5BFF, #25A0C5, #5EAE9E, #FF5353,
@@ -196,6 +198,18 @@ class Node{
     return null;
   }
 
+  int getMultiEdges(String n){
+    Relation r;
+    int counter = 0;
+    for(int i=0;i<relations.size();i++){
+      r = relations.get(i);
+      if (r.getTarget().getName() == n.getName()){
+        counter++;
+      }
+    }
+    return counter;
+  }
+
   void setAsFinal(){
     finalNode=true;
   }
@@ -209,6 +223,8 @@ class Node{
   }
 
   void removeRelation(String type, String target){
+    int counter = 0;
+    Relation r;
     ArrayList<Relation> temp = new ArrayList<Relation>();
     for(int i=0;i<relations.size();i++){
       if (type!=relations.get(i).getType() || target!=relations.get(i).getNode().getName()){
@@ -217,6 +233,13 @@ class Node{
       }
     }
     relations = temp;
+    for(int i=0;i<relations.size();i++){
+      r = relations.get(i);
+      if (r.getTarget().getName() == target){
+        r.setMultiLevel(counter);
+        counter++;
+      }
+    }
   }
 }
 
@@ -226,10 +249,14 @@ class Relation{
   Node target;
   float posx, posy;
 
+  // MultiGraphs management
+  int multiLevel = 0;
+
   Relation(Node sNode, String t, Node tNode){
     source=sNode;
     type=t;
     target=tNode;
+    multiLevel = sNode.getMultiEdges(tNode);
   }
 
   //TODO Remove this
@@ -251,7 +278,7 @@ class Relation{
 
   void drawMe(){
     posx = (source.getX()+target.getX())/2;
-    posy = (source.getY()+target.getY())/2;
+    posy = (source.getY()+target.getY())/2 + MULTI_PADDING*multiLevel;
     stroke(0);
     line(source.getX(), source.getY(), target.getX(), target.getY());
     ellipse(posx, posy, 3, 3);
@@ -259,6 +286,10 @@ class Relation{
       fill(0);
       text(type, posx, posy);
     }
+  }
+
+  void setMultiLevel(int n){
+  multiLevel = n;
   }
 }
 
